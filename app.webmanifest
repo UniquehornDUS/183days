@@ -2,11 +2,17 @@
   "id": "de.uniquehorn.183days",
   "name": "183‑Tage‑Checker",
   "short_name": "183‑Checker",
+  "description": "Rolling‑Window‑Zähler für die letzten 365 Tage – klar, plakativ, offline nutzbar.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0b0c10",
   "theme_color": "#0b0c10",
+  "categories": [
+    "productivity",
+    "finance",
+    "tools"
+  ],
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -26,5 +32,14 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Neuen Aufenthalt",
+      "short_name": "Neu",
+      "description": "Direkt zum Eingabefeld springen",
+      "url": "./index.html#add"
+    }
+  ],
+  "prefer_related_applications": false
 }

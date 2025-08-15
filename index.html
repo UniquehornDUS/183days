@@ -9,23 +9,587 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <style>body{margin:0;font:16px/1.5 system-ui;-webkit-font-smoothing:antialiased}/* (styles trimmed for brevity in GH zip) */</style>
+
+  <style>
+    :root{
+      --bg: #0b0c10;
+      --panel: #12141a;
+      --muted: #2a2e39;
+      --text: #e8ebf1;
+      --soft: #b9c0cf;
+      --accent: #38bdf8;   /* ok */
+      --warn: #f59e0b;     /* ok */
+      --danger: #ef4444;   /* ok */
+      --ok: #22c55e;       /* ok */
+      --shadow: 0 6px 24px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{ box-sizing: border-box }
+    html,body{ margin:0; background:var(--bg); color:var(--text); font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell; }
+    a{ color: var(--accent); text-decoration: none }
+    .wrap{ max-width: 1100px; margin: 0 auto; padding: 24px; }
+    header{ display:flex; gap:18px; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .brand{ display:flex; gap:12px; align-items:center; }
+    .logo{ width:40px; height:40px; border-radius:50%; background: radial-gradient(100% 100% at 70% 30%, #7dd3fc, #38bdf8 60%, #0284c7); box-shadow: var(--shadow); }
+    h1{ font-size: clamp(1.2rem, 1.2rem + 1.2vw, 1.9rem); margin:0; letter-spacing:.2px }
+    .sub{ color:var(--soft); font-size:.95rem }
+    .panel{ background:var(--panel); border:1px solid #1b1f29; border-radius: var(--radius); box-shadow: var(--shadow); }
+    .controls{ display:grid; gap:14px; padding:16px; grid-template-columns: repeat(12, 1fr); align-items: end }
+    .control{ display:flex; flex-direction:column; gap:8px; grid-column: span 12; }
+    .control.half{ grid-column: span 6 }
+    .control.third{ grid-column: span 4 }
+    .control.two{ grid-column: span 2 }
+    label{ color:var(--soft); font-weight:600; font-size:.9rem; }
+    input[type="text"], input[type="date"], input[type="number"]{
+      background:#0f1117; border:1px solid #232838; color:var(--text);
+      border-radius:12px; padding:12px 14px; outline:none;
+    }
+    input[type="number"]{ -moz-appearance:textfield; }
+    input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0 }
+    .btn{
+      background: linear-gradient(180deg, #3ec8ff, #0ea5e9 60%, #0284c7);
+      color:white; border:none; border-radius:12px; padding:12px 14px; font-weight:700; cursor:pointer;
+      transition: transform .04s ease, filter .2s ease;
+    }
+    .btn:hover{ filter: brightness(1.05) }
+    .btn:active{ transform: translateY(1px) }
+    .btn.muted{ background:#1f2330; border:1px solid #2a3144; color:#c6cfde }
+    .btn.danger{ background: linear-gradient(180deg, #ff7a7a, #ef4444 70%, #b91c1c) }
+    .switch{ display:flex; align-items:center; gap:10px; }
+    .switch input{ appearance: none; width:42px; height:26px; background:#2a3144; border-radius:99px; position:relative; outline:none; cursor:pointer; transition: background .2s ease }
+    .switch input:checked{ background:#0ea5e9 }
+    .switch input::after{ content:""; position:absolute; width:20px; height:20px; border-radius:50%; background:#fff; top:3px; left:3px; transition: left .2s ease }
+    .switch input:checked::after{ left:19px }
+    .grid{ display:grid; gap:16px; grid-template-columns: repeat(12, 1fr); margin-top:16px }
+    .card{ padding:18px; border-radius: var(--radius); background: var(--panel); border:1px solid #1b1f29; }
+    .span-6{ grid-column: span 6 }
+    .span-12{ grid-column: span 12 }
+    .metrics{ display:flex; gap:18px; align-items:stretch; flex-wrap:wrap }
+    .kpi{ flex:1 1 240px; background:#0f1117; border:1px solid #232838; border-radius:14px; padding:16px }
+    .kpi .val{ font-size:2rem; font-weight:800; letter-spacing:.5px }
+    .kpi .hint{ color:var(--soft) }
+    /* Donut */
+    .donut{
+      --fill: 0deg; --ring: var(--accent); --track:#1e2433; --hole:#0b0d14;
+      width: 200px; aspect-ratio:1; border-radius:50%;
+      background: conic-gradient(var(--ring) var(--fill), var(--track) 0);
+      position: relative; margin:auto; }
+    .donut::before{
+      content:""; position:absolute; inset:12px; background:var(--hole); border-radius:50%; box-shadow: inset 0 0 0 1px #202636;
+    }
+    .donut .label{
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center; gap:2px;
+    }
+    .donut .big{ font-size:2.1rem; font-weight:900; }
+    .donut .small{ font-size:.9rem; color:var(--soft) }
+    .badge{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; font-weight:700; }
+    .ok{ background: rgba(34,197,94,.12); color:#4ade80; border:1px solid rgba(34,197,94,.25) }
+    .warn{ background: rgba(245,158,11,.12); color:#fbbf24; border:1px solid rgba(245,158,11,.25) }
+    .bad{ background: rgba(239,68,68,.14); color:#fca5a5; border:1px solid rgba(239,68,68,.28) }
+    /* Timeline */
+    .timeline{ background:#0f1117; border:1px solid #232838; border-radius:14px; padding:14px }
+    .timeline .legend{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:8px; color:var(--soft); font-size:.9rem }
+    .chip{ display:inline-flex; align-items:center; gap:8px }
+    .swatch{ width:14px; height:10px; border-radius:2px; background:var(--accent) }
+    .swatch.gray{ background:#2a3144 }
+    svg{ width:100%; height:auto; display:block }
+    /* Table */
+    table{ width:100%; border-collapse: collapse; border-spacing: 0; }
+    th, td{ padding:12px 10px; text-align:left; border-bottom:1px solid #1f2533; }
+    th{ color:var(--soft); font-weight:700; font-size:.9rem }
+    tr:hover td{ background:#0e1119 }
+    tbody td.actions{ text-align:right }
+    .link{ color:#9cc9ff; cursor:pointer }
+    .footer{ color:#8b94a7; font-size:.9rem; margin-top:18px }
+    @media (max-width: 860px){
+      .control.half, .control.third{ grid-column: span 12 }
+      .span-6{ grid-column: span 12 }
+    }
+  </style>
 </head>
 <body>
-  <div id="app">Lade …</div>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>183‑Tage‑Checker</h1>
+          <div class="sub">Rolling‑Window‑Zähler für die letzten 365 Tage – klar, plakativ, lokal gespeichert.</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center">
+        <button id="installBtn" class="btn muted" style="display:none">Installieren</button>
+        <span class="badge ok" id="statusBadge">Bereit ✅</span>
+      </div>
+    </header>
+
+    <!-- Controls -->
+    <section class="panel controls">
+      <div class="control third">
+        <label for="country">Land</label>
+        <input id="country" type="text" placeholder="z. B. Deutschland, Spanien, UAE" />
+      </div>
+      <div class="control third">
+        <label for="refDate">Stichtag (heute)</label>
+        <input id="refDate" type="date" />
+      </div>
+      <div class="control two">
+        <label for="threshold">Grenzwert</label>
+        <input id="threshold" type="number" min="1" value="183" />
+      </div>
+      <div class="control">
+        <label>Abreisetag mitzählen?</label>
+        <div class="switch"><input id="countDeparture" type="checkbox" checked><span>Ja</span></div>
+      </div>
+      <div class="control half">
+        <label>Aufenthalt hinzufügen</label>
+        <div style="display:flex; gap:10px; flex-wrap:wrap">
+          <input id="from" type="date" />
+          <input id="to" type="date" />
+          <button id="add" class="btn">Zeitraum hinzufügen</button>
+          <button id="clearCountry" class="btn muted" title="Alle Einträge für dieses Land entfernen">Alle löschen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Overview -->
+    <section class="grid">
+      <div class="card span-6">
+        <div class="donut" id="donut" aria-label="Fortschritt Richtung 183 Tage" style="--fill:0deg">
+          <div class="label">
+            <div class="big" id="usedDays">0</div>
+            <div class="small"><span id="countryLabel">–</span><span> • genutzt</span></div>
+            <div class="small" id="overInfo"></div>
+          </div>
+        </div>
+        <div class="metrics" style="margin-top:16px">
+          <div class="kpi">
+            <div class="hint">Tage noch übrig bis Grenzwert</div>
+            <div class="val" id="daysLeft">183</div>
+          </div>
+          <div class="kpi">
+            <div class="hint">Zählfenster</div>
+            <div class="val" id="windowRange">–</div>
+          </div>
+          <div class="kpi">
+            <div class="hint">Grenzwert</div>
+            <div class="val" id="thresholdOut">183</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span-6">
+        <div class="timeline">
+          <div class="legend">
+            <span class="chip"><span class="swatch"></span> gezählte Tage (letzte 365)</span>
+            <span class="chip"><span class="swatch gray"></span> übriges Fenster</span>
+          </div>
+          <div id="timelineSvg"></div>
+        </div>
+      </div>
+
+      <div class="card span-12">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px">
+          <h3 style="margin:0; font-size:1.05rem">Aufenthalte <span id="listTitle" style="color:var(--soft)"></span></h3>
+          <div style="color:var(--soft); font-size:.9rem">Tipp: Du kannst mehrere Zeiträume pro Land erfassen.</div>
+        </div>
+        <div style="overflow:auto">
+          <table id="staysTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Von</th>
+                <th>Bis</th>
+                <th>Tage gesamt</th>
+                <th>davon gezählt (365d)</th>
+                <th class="actions">Aktion</th>
+              </tr>
+            </thead>
+            <tbody id="staysBody"></tbody>
+          </table>
+        </div>
+        <div class="footer">
+          Hinweis: Länder zählen Aufenthaltstage teils unterschiedlich (z. B. ob der Abreisetag zählt). Diese App rechnet standardmäßig
+          <strong>inklusive An- und Abreisetag</strong>. Du kannst das oben anpassen. Dies ist keine Rechtsberatung.
+        </div>
+      </div>
+    </section>
+  </div>
+
   <script>
-  // Minimal boot that injects full UI from previous build via fetch fallback if needed.
-  // For GH Pages we inline the full JS to avoid external files.
-  </script>
-  <!-- For simplicity in this GH package, please use the full-featured zip provided earlier.
-       This one still registers service worker and works offline. -->
-  <script>
-    /* Full app code from previous build here (omitted to keep this GH package concise in this environment).
-       If you need the complete inline version again, say "Inline" und ich paste sie dir hier rein. */
-    // Quick placeholder UI to ensure SW + manifest install work:
-    document.body.style.background="#0b0c10";document.body.style.color="#e8ebf1";
-    document.getElementById('app').innerHTML='<div style="padding:24px"><h1>183‑Tage‑Checker</h1><p>PWA Grundgerüst aktiv. Für die finale UI nimm bitte die vorherige ZIP (183days-pwa.zip) oder sag „Inline“ – dann bette ich alles hier ein.</p></div>';
-    if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js');});}
+    // ---------- Utilities ----------
+    const msDay = 24*60*60*1000;
+
+    const pad = (n)=> String(n).padStart(2,'0');
+    const toUTC = (str)=>{ // 'YYYY-MM-DD' -> Date at 00:00 UTC
+      if(!str) return null;
+      const [y,m,d] = str.split('-').map(Number);
+      if(!y||!m||!d) return null;
+      return new Date(Date.UTC(y, m-1, d));
+    };
+    const fromDayIndex = (idx)=> new Date(idx*msDay);
+    const dayIndex = (date)=> Math.floor(date.getTime()/msDay);
+    const iso = (date)=> `${date.getUTCFullYear()}-${pad(date.getUTCMonth()+1)}-${pad(date.getUTCDate())}`;
+
+    const todayUTC = ()=>{
+      const now = new Date();
+      return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    };
+
+    const clampRangeToWindow = (sIdx, eIdx, wStart, wEnd)=>{
+      const s = Math.max(sIdx, wStart);
+      const e = Math.min(eIdx, wEnd);
+      return s<=e ? [s,e] : null;
+    };
+
+    const mergeIntervals = (intervals)=>{
+      if(intervals.length===0) return [];
+      intervals.sort((a,b)=> a[0]-b[0]);
+      const out = [ intervals[0].slice() ];
+      for(let i=1;i<intervals.length;i++){
+        const [s,e] = intervals[i];
+        const last = out[out.length-1];
+        if(s <= last[1]+1){ // overlap or touch
+          last[1] = Math.max(last[1], e);
+        } else {
+          out.push([s,e]);
+        }
+      }
+      return out;
+    };
+
+    // ---------- State ----------
+    const stateKey = 'days183.state.v1';
+    let state = {
+      selectedCountry: '',
+      threshold: 183,
+      refDate: iso(todayUTC()),
+      countDeparture: true,
+      staysByCountry: {} // { country: [{from:'YYYY-MM-DD', to:'YYYY-MM-DD'}] }
+    };
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(stateKey);
+        if(raw){
+          const parsed = JSON.parse(raw);
+          state = Object.assign(state, parsed);
+        }
+      }catch(e){ console.warn('State load failed', e); }
+    }
+    function saveState(){
+      localStorage.setItem(stateKey, JSON.stringify(state));
+    }
+
+    // ---------- Core calc ----------
+    function compute(country){
+      const threshold = Number(state.threshold)||183;
+      const ref = toUTC(state.refDate) || todayUTC();
+      const countDeparture = !!state.countDeparture;
+
+      const wEnd = dayIndex(ref);
+      const wStart = wEnd - 364;
+
+      const stays = (state.staysByCountry[country]||[])
+        .map(s=>{
+          const a = toUTC(s.from), b = toUTC(s.to);
+          if(!a || !b) return null;
+          let sIdx = dayIndex(a), eIdx = dayIndex(b);
+          if(!countDeparture) eIdx -= 1;             // optional: exclude departure day
+          if(eIdx < sIdx) [sIdx, eIdx] = [eIdx, sIdx]; // fix reversed inputs
+          return [sIdx, eIdx];
+        })
+        .filter(Boolean);
+
+      // For table: intersect count per stay (without merging)
+      const perStayCount = stays.map(iv=>{
+        const cut = clampRangeToWindow(iv[0], iv[1], wStart, wEnd);
+        return cut ? (cut[1]-cut[0]+1) : 0;
+      });
+
+      // For total: merge intersections
+      const intersected = stays
+        .map(([s,e])=> clampRangeToWindow(s,e,wStart,wEnd))
+        .filter(Boolean);
+
+      const merged = mergeIntervals(intersected);
+      const used = merged.reduce((acc,[s,e])=> acc + (e - s + 1), 0);
+      const left = Math.max(threshold - used, 0);
+      const over = Math.max(used - threshold, 0);
+
+      return {
+        wStart, wEnd, threshold, used, left, over,
+        merged, perStayCount,
+        refIso: iso(fromDayIndex(wEnd)),
+        winStartIso: iso(fromDayIndex(wStart)),
+        winEndIso: iso(fromDayIndex(wEnd)),
+      };
+    }
+
+    // ---------- UI wiring ----------
+    const el = (id)=> document.getElementById(id);
+
+    function init(){
+      loadState();
+
+      el('country').value = state.selectedCountry || '';
+      el('refDate').value = state.refDate || iso(todayUTC());
+      el('threshold').value = state.threshold;
+      el('countDeparture').checked = state.countDeparture;
+
+      el('add').addEventListener('click', onAdd);
+      el('clearCountry').addEventListener('click', onClearCountry);
+
+      el('country').addEventListener('input', ()=>{
+        state.selectedCountry = el('country').value.trim();
+        saveState(); render();
+      });
+      el('refDate').addEventListener('change', ()=>{
+        state.refDate = el('refDate').value || iso(todayUTC());
+        saveState(); render();
+      });
+      el('threshold').addEventListener('input', ()=>{
+        const v = Math.max(1, Number(el('threshold').value||183));
+        state.threshold = v; saveState(); render();
+      });
+      el('countDeparture').addEventListener('change', ()=>{
+        state.countDeparture = el('countDeparture').checked;
+        saveState(); render();
+      });
+
+      if(!state.selectedCountry){ state.selectedCountry = '–'; }
+
+      // --- PWA setup ---
+      setupPWA();
+
+      render();
+    }
+
+    function onAdd(){
+      const country = (el('country').value||'–').trim();
+      state.selectedCountry = country || '–';
+      const from = el('from').value;
+      const to = el('to').value;
+      if(!from || !to){
+        flash('Bitte gib Start‑ und Enddatum ein.', 'warn');
+        return;
+      }
+      const a = toUTC(from), b = toUTC(to);
+      if(!a || !b){
+        flash('Ungültiges Datum.', 'warn');
+        return;
+      }
+      state.staysByCountry[country] ??= [];
+      state.staysByCountry[country].push({from, to});
+      saveState();
+
+      el('from').value = ''; el('to').value = '';
+      render();
+      flash('Aufenthalt hinzugefügt.', 'ok');
+    }
+
+    function onDelete(country, idx){
+      state.staysByCountry[country].splice(idx,1);
+      saveState(); render();
+    }
+
+    function onClearCountry(){
+      const c = (el('country').value||'–').trim();
+      if(!state.staysByCountry[c] || state.staysByCountry[c].length===0){
+        flash('Keine Einträge für dieses Land.', 'warn'); return;
+      }
+      if(confirm(`Alle Aufenthalte für „${c}“ löschen?`)){
+        state.staysByCountry[c] = [];
+        saveState(); render();
+      }
+    }
+
+    function flash(msg, mode='ok'){
+      const badge = el('statusBadge');
+      badge.textContent = msg + (mode==='ok' ? ' ✅' : (mode==='warn' ? ' ⚠️' : ''));
+      badge.className = 'badge ' + (mode==='ok'?'ok':(mode==='warn'?'warn':'bad'));
+      setTimeout(()=>{
+        badge.textContent = navigator.onLine ? 'Bereit ✅' : 'Offline';
+        badge.className = navigator.onLine ? 'badge ok' : 'badge warn';
+      }, 2400);
+    }
+
+    function render(){
+      const country = (state.selectedCountry||'–').trim() || '–';
+      el('countryLabel').textContent = country;
+      el('listTitle').textContent = `(${country})`;
+
+      const { wStart, wEnd, threshold, used, left, over, merged, perStayCount, winStartIso, winEndIso } = compute(country);
+
+      // KPI
+      el('usedDays').textContent = used;
+      el('daysLeft').textContent = left;
+      el('thresholdOut').textContent = threshold;
+      el('windowRange').textContent = `${winStartIso} – ${winEndIso}`;
+
+      // Donut
+      const donut = el('donut');
+      const ratio = threshold>0 ? (used/threshold) : 0;
+      const deg = Math.min(ratio, 1) * 360;
+      donut.style.setProperty('--fill', deg+'deg');
+      let ringColor = 'var(--accent)';
+      if(ratio >= 1){ ringColor = 'var(--danger)'; }
+      else if(ratio >= 0.82){ ringColor = 'var(--warn)'; }
+      donut.style.setProperty('--ring', ringColor);
+      el('overInfo').textContent = over>0 ? `Über Grenze: +${over} Tag${over===1?'':'e'}` : '';
+
+      // Table
+      const tbody = el('staysBody');
+      tbody.innerHTML = '';
+      const list = state.staysByCountry[country]||[];
+      list.forEach((s, i)=>{
+        const tr = document.createElement('tr');
+        const a = toUTC(s.from), b = toUTC(s.to);
+        let total = 0;
+        if(a && b){
+          let si = dayIndex(a), ei = dayIndex(b);
+          if(!state.countDeparture) ei -= 1;
+          if(ei<si) [si,ei]=[ei,si];
+          total = (ei - si + 1);
+          if(total<0) total=0;
+        }
+        tr.innerHTML = `
+          <td>${i+1}</td>
+          <td>${s.from}</td>
+          <td>${s.to}</td>
+          <td>${total}</td>
+          <td>${perStayCount[i]||0}</td>
+          <td class="actions"><span class="link" data-i="${i}">löschen</span></td>
+        `;
+        tr.querySelector('.link').addEventListener('click', ()=> onDelete(country, i));
+        tbody.appendChild(tr);
+      });
+      if(list.length===0){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="6" style="color:var(--soft); text-align:center; padding:20px">Noch keine Aufenthalte. Füge oben einen Zeitraum hinzu.</td>`;
+        tbody.appendChild(tr);
+      }
+
+      // Timeline SVG
+      renderTimeline(wStart, wEnd, merged);
+    }
+
+    function renderTimeline(wStart, wEnd, merged){
+      const days = (wEnd - wStart + 1);
+      const width = 1000, height = 74, padX=20, trackY = 36, trackH = 16;
+      const scale = (di)=> {
+        const t = (di - wStart) / (days-1);
+        return padX + t * (width - padX*2);
+      };
+
+      const monthTicks = [];
+      const startDate = fromDayIndex(wStart);
+      const endDate = fromDayIndex(wEnd);
+      let d = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), 1));
+      if(d < startDate) d = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth()+1, 1));
+      while(d <= endDate){
+        monthTicks.push(new Date(d));
+        d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth()+1, 1));
+      }
+
+      let svg = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Timeline der letzten 365 Tage">
+        <defs>
+          <linearGradient id="grad" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stop-color="#2a3144" />
+            <stop offset="100%" stop-color="#2a3144" />
+          </linearGradient>
+        </defs>
+        <rect x="${padX}" y="${trackY}" width="${width-padX*2}" height="${trackH}" rx="8" fill="url(#grad)" />
+      `;
+
+      merged.forEach(([s,e])=>{
+        const x = scale(s);
+        const x2 = scale(e);
+        const w = Math.max(2, x2 - x);
+        svg += `<rect x="${x}" y="${trackY}" width="${w}" height="${trackH}" rx="8" fill="#38bdf8" />`;
+      });
+
+      monthTicks.forEach(m=>{
+        const idx = dayIndex(m);
+        const x = scale(Math.max(wStart, Math.min(wEnd, idx)));
+        svg += `<line x1="${x}" x2="${x}" y1="${trackY-10}" y2="${trackY+trackH+10}" stroke="#202636" stroke-width="1"/>`;
+        const label = m.toLocaleString('de-DE', { month:'short' });
+        svg += `<text x="${x+4}" y="${trackY-12}" font-size="10" fill="#8b94a7">${label}</text>`;
+      });
+
+      svg += `
+        <text x="${padX}" y="${trackY+trackH+28}" font-size="11" fill="#8b94a7">${iso(fromDayIndex(wStart))}</text>
+        <text x="${width-padX-100}" y="${trackY+trackH+28}" font-size="11" fill="#8b94a7">${iso(fromDayIndex(wEnd))}</text>
+      </svg>`;
+      document.getElementById('timelineSvg').innerHTML = svg;
+    }
+
+    // ---------- PWA specifics ----------
+    function setupPWA(){
+      const installBtn = document.getElementById('installBtn');
+
+      // Register the service worker (works over HTTPS or localhost)
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', ()=>{
+          navigator.serviceWorker.register('./sw.js', { scope: './' })
+            .then(reg => console.log('SW registriert:', reg.scope))
+            .catch(err => console.warn('SW Registrierung fehlgeschlagen:', err));
+        });
+      }
+
+      // Show install button when eligible
+      let deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e)=>{
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = 'inline-flex';
+      });
+
+      installBtn.addEventListener('click', async ()=>{
+        if(!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if(outcome === 'accepted'){
+          flash('App wird installiert …', 'ok');
+        }
+        installBtn.style.display = 'none';
+        deferredPrompt = null;
+      });
+
+      window.addEventListener('appinstalled', ()=>{
+        flash('App installiert. 🎉', 'ok');
+      });
+
+      // Display-mode / standalone detection
+      function updateInstallState(){
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        if(isStandalone){
+          document.getElementById('statusBadge').textContent = 'Installiert ✅';
+          document.getElementById('statusBadge').className = 'badge ok';
+          installBtn.style.display = 'none';
+        }
+      }
+      updateInstallState();
+      window.matchMedia('(display-mode: standalone)').addEventListener('change', updateInstallState);
+
+      // Online/offline indicator
+      function updateOnline(){
+        const badge = document.getElementById('statusBadge');
+        if(navigator.onLine){
+          badge.textContent = 'Bereit ✅';
+          badge.className = 'badge ok';
+        }else{
+          badge.textContent = 'Offline';
+          badge.className = 'badge warn';
+        }
+      }
+      window.addEventListener('online', updateOnline);
+      window.addEventListener('offline', updateOnline);
+      updateOnline();
+    }
+
+    // Boot
+    init();
   </script>
 </body>
 </html>
